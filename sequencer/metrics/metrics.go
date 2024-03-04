@@ -23,12 +23,14 @@ const (
 	// SequenceRewardInPolName is the name of the metric that shows the reward in Pol of a sequence.
 	SequenceRewardInPolName = Prefix + "sequence_reward_in_pol"
 	// ProcessingTimeName is the name of the metric that shows the processing time.
-	ProcessingTimeName    = Prefix + "processing_time"
-	BeginBlockTimeName    = Prefix + "begin_block_time"
-	EndBlockTimeName      = Prefix + "end_block_time"
-	L2BlockExecTimeName   = Prefix + "l2_block_exec_time"
-	L2BlockStoreTimeName  = Prefix + "l2_block_store_time"
-	GetTxFromPoolTimeName = Prefix + "get_tx_from_pool"
+	ProcessingTimeName             = Prefix + "processing_time"
+	BeginBlockTimeName             = Prefix + "begin_block_time"
+	EndBlockTimeName               = Prefix + "end_block_time"
+	L2BlockExecTimeName            = Prefix + "l2_block_exec_time"
+	L2BlockStoreTimeName           = Prefix + "l2_block_store_time"
+	GetTxFromPoolTimeName          = Prefix + "get_tx_from_pool"
+	FinalizeL2BlockAtBeginTimeName = Prefix + "finalize_l2_block_at_begin_time"
+
 	// WorkerPrefix is the prefix for the metrics of the worker.
 	WorkerPrefix = Prefix + "worker_"
 	// WorkerProcessingTimeName is the name of the metric that shows the worker processing time.
@@ -121,6 +123,10 @@ func Register() {
 			Help: "[SEQUENCER] get tx from pool time",
 		},
 		{
+			Name: FinalizeL2BlockAtBeginTimeName,
+			Help: "[SEQUENCER] finalize l2 block at begin time",
+		},
+		{
 			Name: WorkerProcessingTimeName,
 			Help: "[SEQUENCER] worker processing time",
 		},
@@ -194,6 +200,11 @@ func L2BlockStoreTime(lastProcessTime time.Duration) {
 func GetTxFromPoolTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
 	metrics.HistogramObserve(GetTxFromPoolTimeName, execTimeInSeconds)
+}
+
+func FinalizeL2BlockAtBeginTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(FinalizeL2BlockAtBeginTimeName, execTimeInSeconds)
 }
 
 // WorkerProcessingTime observes the last processing time on the histogram.

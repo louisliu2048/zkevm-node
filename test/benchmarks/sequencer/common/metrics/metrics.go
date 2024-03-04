@@ -46,15 +46,18 @@ func CalculateAndPrint(
 		panic(fmt.Sprintf("error getting prometheus metrics: %v\n", err))
 	}
 	beginBlockTime := metricValues.BeginBlockTime - sequencerTimeSub
+	finalizeL2BlockAtBeginTime := metricValues.FinalizeL2BlockAtBeginTime - sequencerTimeSub
+	getTxFromPoolTime := metricValues.GetTxFromPoolTime - sequencerTimeSub
+	fmt.Println("BeginBlockTime is: ", beginBlockTime)
+	fmt.Println("FinalizeL2BlockAtBeginTime is: ", finalizeL2BlockAtBeginTime)
+	fmt.Println("GetTxFromPoolTime is: ", getTxFromPoolTime)
+
 	endBlockTime := metricValues.EndBlockTime - sequencerTimeSub
 	l2BlockExecTime := metricValues.L2BlockExecTime - sequencerTimeSub
 	l2BlockStoreTime := metricValues.L2BlockStoreTime - sequencerTimeSub
-	getTxFromPoolTime := metricValues.GetTxFromPoolTime - sequencerTimeSub
-	fmt.Println("BeginBlockTime is: ", beginBlockTime)
 	fmt.Println("EndBlockTime is: ", endBlockTime)
 	fmt.Println("L2BlockExecTime is: ", l2BlockExecTime)
 	fmt.Println("L2BlockStoreTime is: ", l2BlockStoreTime)
-	fmt.Println("GetTxFromPoolTime is: ", getTxFromPoolTime)
 
 	actualTotalTime := metricValues.SequencerTotalProcessingTime - sequencerTimeSub
 	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - executorTimeSub
@@ -117,6 +120,7 @@ func getTransactionsBreakdownForUniswap(numberOfOperations uint64) (*string, uin
 type Values struct {
 	SequencerTotalProcessingTime float64
 	BeginBlockTime               float64
+	FinalizeL2BlockAtBeginTime   float64
 	EndBlockTime                 float64
 	L2BlockExecTime              float64
 	L2BlockStoreTime             float64
@@ -157,6 +161,9 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	getTxFromPoolTimeHisto := mf[metrics.GetTxFromPoolTimeName].Metric[0].Histogram
 	getTxFromPoolTime := getTxFromPoolTimeHisto.GetSampleSum()
 
+	finalizeL2BlockAtBeginTimeNameHisto := mf[metrics.FinalizeL2BlockAtBeginTimeName].Metric[0].Histogram
+	finalizeL2BlockAtBeginTime := finalizeL2BlockAtBeginTimeNameHisto.GetSampleSum()
+
 	workerTotalProcessingTimeHisto := mf[metrics.WorkerProcessingTimeName].Metric[0].Histogram
 	workerTotalProcessingTime := workerTotalProcessingTimeHisto.GetSampleSum()
 
@@ -166,10 +173,11 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	return Values{
 		SequencerTotalProcessingTime: sequencerTotalProcessingTime,
 		BeginBlockTime:               beginBlockTime,
+		FinalizeL2BlockAtBeginTime:   finalizeL2BlockAtBeginTime,
+		GetTxFromPoolTime:            getTxFromPoolTime,
 		EndBlockTime:                 endBlockTime,
 		L2BlockExecTime:              l2BlockExecTime,
 		L2BlockStoreTime:             l2BlockStoreTime,
-		GetTxFromPoolTime:            getTxFromPoolTime,
 		ExecutorTotalProcessingTime:  executorTotalProcessingTime,
 		WorkerTotalProcessingTime:    workerTotalProcessingTime,
 	}, nil

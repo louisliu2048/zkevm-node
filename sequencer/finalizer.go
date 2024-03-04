@@ -268,6 +268,7 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 		if f.wipL2Block.timestamp+uint64(f.cfg.L2BlockMaxDeltaTimestamp.Seconds()) <= uint64(time.Now().Unix()) {
 			f.finalizeWIPL2Block(ctx)
 		}
+		metrics.FinalizeL2BlockAtBeginTime(time.Since(start))
 
 		t1 := now()
 		tx, err := f.workerIntf.GetBestFittingTx(f.wipBatch.imRemainingResources)
