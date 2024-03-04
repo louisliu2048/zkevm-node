@@ -269,7 +269,9 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 			f.finalizeWIPL2Block(ctx)
 		}
 
+		t1 := now()
 		tx, err := f.workerIntf.GetBestFittingTx(f.wipBatch.imRemainingResources)
+		metrics.GetTxFromPoolTime(time.Since(t1))
 
 		// If we have txs pending to process but none of them fits into the wip batch, we close the wip batch and open a new one
 		if err == ErrNoFittingTransaction {
@@ -277,6 +279,8 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 			continue
 		}
 
+		metrics.ProcessingTime(time.Since(start))
+		metrics.BeginBlockTime(time.Since(start))
 		metrics.WorkerProcessingTime(time.Since(start))
 		if tx != nil {
 			showNotFoundTxLog = true
@@ -319,10 +323,13 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 			}
 		}
 
+		t2 := now()
 		// Check if we must finalize the batch due to a closing reason (resources exhausted, max txs, timestamp resolution, forced batches deadline)
 		if finalize, closeReason := f.checkIfFinalizeBatch(); finalize {
 			f.finalizeWIPBatch(ctx, closeReason)
 		}
+		metrics.ProcessingTime(time.Since(t2))
+		metrics.EndBlockTime(time.Since(t2))
 
 		if err := ctx.Err(); err != nil {
 			log.Errorf("stopping finalizer because of context, error: %v", err)

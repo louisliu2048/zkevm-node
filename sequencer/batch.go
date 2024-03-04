@@ -145,10 +145,10 @@ func (f *finalizer) initWIPBatch(ctx context.Context) {
 
 // finalizeWIPBatch closes the current batch and opens a new one, potentially processing forced batches between the batch is closed and the resulting new empty batch
 func (f *finalizer) finalizeWIPBatch(ctx context.Context, closeReason state.ClosingReason) {
-	start := time.Now()
-	defer func() {
-		metrics.ProcessingTime(time.Since(start))
-	}()
+	//start := time.Now()
+	//defer func() {
+	//	metrics.ProcessingTime(time.Since(start))
+	//}()
 
 	prevTimestamp := f.wipL2Block.timestamp
 	prevL1InfoTreeIndex := f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex
@@ -186,11 +186,14 @@ func (f *finalizer) closeAndOpenNewWIPBatch(ctx context.Context, closeReason sta
 	f.pendingL2BlocksToProcessWG.Wait()
 	elapsed := time.Since(startWait)
 	stateMetrics.ExecutorProcessingTime(string(stateMetrics.SequencerCallerLabel), elapsed)
+	metrics.L2BlockExecTime(elapsed)
+
 	log.Debugf("waiting for pending L2 blocks to be processed took: %v", elapsed)
 
 	// Wait until all L2 blocks are store
 	startWait = time.Now()
 	f.pendingL2BlocksToStoreWG.Wait()
+	metrics.L2BlockStoreTime(time.Since(startWait))
 	log.Debugf("waiting for pending L2 blocks to be stored took: %v", time.Since(startWait))
 
 	f.wipBatch.closingReason = closeReason

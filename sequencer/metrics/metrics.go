@@ -23,7 +23,12 @@ const (
 	// SequenceRewardInPolName is the name of the metric that shows the reward in Pol of a sequence.
 	SequenceRewardInPolName = Prefix + "sequence_reward_in_pol"
 	// ProcessingTimeName is the name of the metric that shows the processing time.
-	ProcessingTimeName = Prefix + "processing_time"
+	ProcessingTimeName    = Prefix + "processing_time"
+	BeginBlockTimeName    = Prefix + "begin_block_time"
+	EndBlockTimeName      = Prefix + "end_block_time"
+	L2BlockExecTimeName   = Prefix + "l2_block_exec_time"
+	L2BlockStoreTimeName  = Prefix + "l2_block_store_time"
+	GetTxFromPoolTimeName = Prefix + "get_tx_from_pool"
 	// WorkerPrefix is the prefix for the metrics of the worker.
 	WorkerPrefix = Prefix + "worker_"
 	// WorkerProcessingTimeName is the name of the metric that shows the worker processing time.
@@ -96,6 +101,26 @@ func Register() {
 			Help: "[SEQUENCER] processing time",
 		},
 		{
+			Name: BeginBlockTimeName,
+			Help: "[SEQUENCER] begin block time",
+		},
+		{
+			Name: EndBlockTimeName,
+			Help: "[SEQUENCER] end block time",
+		},
+		{
+			Name: L2BlockExecTimeName,
+			Help: "[SEQUENCER] l2 block exec time",
+		},
+		{
+			Name: L2BlockStoreTimeName,
+			Help: "[SEQUENCER] l2 block store time",
+		},
+		{
+			Name: GetTxFromPoolTimeName,
+			Help: "[SEQUENCER] get tx from pool time",
+		},
+		{
 			Name: WorkerProcessingTimeName,
 			Help: "[SEQUENCER] worker processing time",
 		},
@@ -144,6 +169,31 @@ func SequenceRewardInPol(reward float64) {
 func ProcessingTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
 	metrics.HistogramObserve(ProcessingTimeName, execTimeInSeconds)
+}
+
+func BeginBlockTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(BeginBlockTimeName, execTimeInSeconds)
+}
+
+func EndBlockTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(EndBlockTimeName, execTimeInSeconds)
+}
+
+func L2BlockExecTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(L2BlockExecTimeName, execTimeInSeconds)
+}
+
+func L2BlockStoreTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(L2BlockStoreTimeName, execTimeInSeconds)
+}
+
+func GetTxFromPoolTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(GetTxFromPoolTimeName, execTimeInSeconds)
 }
 
 // WorkerProcessingTime observes the last processing time on the histogram.

@@ -52,6 +52,11 @@ func (b *L2Block) getL1InfoTreeIndex() uint32 {
 
 // initWIPL2Block inits the wip L2 block
 func (f *finalizer) initWIPL2Block(ctx context.Context) {
+	start := time.Now()
+	defer func() {
+		metrics.ProcessingTime(time.Since(start))
+	}()
+
 	// Wait to l1InfoTree to be updated for first time
 	f.lastL1InfoTreeCond.L.Lock()
 	for !f.lastL1InfoTreeValid {
@@ -554,10 +559,10 @@ func (f *finalizer) openNewWIPL2Block(ctx context.Context, prevTimestamp uint64,
 
 // executeNewWIPL2Block executes an empty L2 Block in the executor and returns the batch response from the executor
 func (f *finalizer) executeNewWIPL2Block(ctx context.Context) (*state.ProcessBatchResponse, error) {
-	start := time.Now()
-	defer func() {
-		metrics.ProcessingTime(time.Since(start))
-	}()
+	//start := time.Now()
+	//defer func() {
+	//	metrics.ProcessingTime(time.Since(start))
+	//}()
 
 	batchRequest := state.ProcessRequest{
 		BatchNumber:               f.wipBatch.batchNumber,
