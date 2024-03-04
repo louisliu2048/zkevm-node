@@ -47,9 +47,14 @@ func CalculateAndPrint(
 	}
 	beginBlockTime := metricValues.BeginBlockTime - sequencerTimeSub
 	finalizeL2BlockAtBeginTime := metricValues.FinalizeL2BlockAtBeginTime - sequencerTimeSub
+	closeWIPL2BlockAtBeginTime := metricValues.CloseWIPL2BlockAtBeginTime - sequencerTimeSub
+	openNewWIPL2BlockAtBeginTime := metricValues.OpenNewWIPL2BlockAtBeginTime - sequencerTimeSub
+
 	getTxFromPoolTime := metricValues.GetTxFromPoolTime - sequencerTimeSub
 	fmt.Println("BeginBlockTime is: ", beginBlockTime)
 	fmt.Println("FinalizeL2BlockAtBeginTime is: ", finalizeL2BlockAtBeginTime)
+	fmt.Println("CloseWIPL2BlockAtBeginTime is: ", closeWIPL2BlockAtBeginTime)
+	fmt.Println("OpenNewWIPL2BlockAtBeginTime is: ", openNewWIPL2BlockAtBeginTime)
 	fmt.Println("GetTxFromPoolTime is: ", getTxFromPoolTime)
 
 	endBlockTime := metricValues.EndBlockTime - sequencerTimeSub
@@ -121,6 +126,8 @@ type Values struct {
 	SequencerTotalProcessingTime float64
 	BeginBlockTime               float64
 	FinalizeL2BlockAtBeginTime   float64
+	CloseWIPL2BlockAtBeginTime   float64
+	OpenNewWIPL2BlockAtBeginTime float64
 	EndBlockTime                 float64
 	L2BlockExecTime              float64
 	L2BlockStoreTime             float64
@@ -164,6 +171,12 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	finalizeL2BlockAtBeginTimeNameHisto := mf[metrics.FinalizeL2BlockAtBeginTimeName].Metric[0].Histogram
 	finalizeL2BlockAtBeginTime := finalizeL2BlockAtBeginTimeNameHisto.GetSampleSum()
 
+	closeWIPL2BlockAtBeginTimeNameHisto := mf[metrics.CloseWIPL2BlockAtBeginTimeName].Metric[0].Histogram
+	closeWIPL2BlockAtBeginTime := closeWIPL2BlockAtBeginTimeNameHisto.GetSampleSum()
+
+	openNewWIPL2BlockAtBeginTimeNameHisto := mf[metrics.OpenNewWIPL2BlockAtBeginTimeName].Metric[0].Histogram
+	openNewWIPL2BlockAtBeginTime := openNewWIPL2BlockAtBeginTimeNameHisto.GetSampleSum()
+
 	workerTotalProcessingTimeHisto := mf[metrics.WorkerProcessingTimeName].Metric[0].Histogram
 	workerTotalProcessingTime := workerTotalProcessingTimeHisto.GetSampleSum()
 
@@ -174,6 +187,8 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 		SequencerTotalProcessingTime: sequencerTotalProcessingTime,
 		BeginBlockTime:               beginBlockTime,
 		FinalizeL2BlockAtBeginTime:   finalizeL2BlockAtBeginTime,
+		CloseWIPL2BlockAtBeginTime:   closeWIPL2BlockAtBeginTime,
+		OpenNewWIPL2BlockAtBeginTime: openNewWIPL2BlockAtBeginTime,
 		GetTxFromPoolTime:            getTxFromPoolTime,
 		EndBlockTime:                 endBlockTime,
 		L2BlockExecTime:              l2BlockExecTime,

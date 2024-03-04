@@ -443,9 +443,13 @@ func (f *finalizer) finalizeWIPL2Block(ctx context.Context) {
 	prevTimestamp := f.wipL2Block.timestamp
 	prevL1InfoTreeIndex := f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex
 
+	t1 := time.Now()
 	f.closeWIPL2Block(ctx)
+	metrics.CloseWIPL2BlockAtBeginTime(time.Since(t1))
 
+	t1 = time.Now()
 	f.openNewWIPL2Block(ctx, prevTimestamp, &prevL1InfoTreeIndex)
+	metrics.OpenNewWIPL2BlockAtBeginTime(time.Since(t1))
 }
 
 // closeWIPL2Block closes the wip L2 block
