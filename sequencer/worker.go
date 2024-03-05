@@ -22,6 +22,9 @@ type Worker struct {
 	workerMutex      sync.Mutex
 	state            stateInterface
 	batchConstraints state.BatchConstraintsCfg
+
+	pendingTxsPool  map[string]map[common.Hash]struct{}
+	pendingTxsMutex sync.Mutex
 }
 
 // NewWorker creates an init a worker
@@ -31,6 +34,7 @@ func NewWorker(state stateInterface, constraints state.BatchConstraintsCfg) *Wor
 		txSortedList:     newTxSortedList(),
 		state:            state,
 		batchConstraints: constraints,
+		pendingTxsPool:   make(map[string]map[common.Hash]struct{}),
 	}
 
 	return &w
@@ -246,15 +250,15 @@ func (w *Worker) UpdateTxZKCounters(txHash common.Hash, addr common.Address, use
 
 // AddPendingTxToStore adds a tx to the addrQueue list of pending txs to store in the DB (trusted state)
 func (w *Worker) AddPendingTxToStore(txHash common.Hash, addr common.Address) {
-	w.workerMutex.Lock()
-	defer w.workerMutex.Unlock()
+	w.pendingTxsMutex.Lock()
+	defer w.pendingTxsMutex.Unlock()
 
-	addrQueue, found := w.pool[addr.String()]
-
-	if found {
-		addrQueue.addPendingTxToStore(txHash)
+	if txsPool, ok := w.pendingTxsPool[addr.String()]; ok {
+		txsPool[txHash] = struct{}{}
 	} else {
-		log.Warnf("addrQueue %s not found", addr.String())
+		tmpPool := make(map[common.Hash]struct{})
+		tmpPool[txHash] = struct{}{}
+		w.pendingTxsPool[addr.String()] = tmpPool
 	}
 }
 
@@ -274,13 +278,14 @@ func (w *Worker) AddForcedTx(txHash common.Hash, addr common.Address) {
 
 // DeletePendingTxToStore delete a tx from the addrQueue list of pending txs to store in the DB (trusted state)
 func (w *Worker) DeletePendingTxToStore(txHash common.Hash, addr common.Address) {
-	w.workerMutex.Lock()
-	defer w.workerMutex.Unlock()
+	w.pendingTxsMutex.Lock()
+	defer w.pendingTxsMutex.Unlock()
 
-	addrQueue, found := w.pool[addr.String()]
-
-	if found {
-		addrQueue.deletePendingTxToStore(txHash)
+	if txsPool, ok := w.pendingTxsPool[addr.String()]; ok {
+		delete(txsPool, txHash)
+		if len(txsPool) == 0 {
+			delete(w.pendingTxsPool, addr.String())
+		}
 	} else {
 		log.Warnf("addrQueue %s not found", addr.String())
 	}
