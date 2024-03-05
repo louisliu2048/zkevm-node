@@ -45,24 +45,21 @@ func CalculateAndPrint(
 	if err != nil {
 		panic(fmt.Sprintf("error getting prometheus metrics: %v\n", err))
 	}
-	beginBlockTime := metricValues.BeginBlockTime - sequencerTimeSub
-	finalizeL2BlockAtBeginTime := metricValues.FinalizeL2BlockAtBeginTime - sequencerTimeSub
-	closeWIPL2BlockAtBeginTime := metricValues.CloseWIPL2BlockAtBeginTime - sequencerTimeSub
-	openNewWIPL2BlockAtBeginTime := metricValues.OpenNewWIPL2BlockAtBeginTime - sequencerTimeSub
 
 	getTxFromPoolTime := metricValues.GetTxFromPoolTime - sequencerTimeSub
-	fmt.Println("BeginBlockTime is: ", beginBlockTime)
-	fmt.Println("FinalizeL2BlockAtBeginTime is: ", finalizeL2BlockAtBeginTime)
-	fmt.Println("CloseWIPL2BlockAtBeginTime is: ", closeWIPL2BlockAtBeginTime)
-	fmt.Println("OpenNewWIPL2BlockAtBeginTime is: ", openNewWIPL2BlockAtBeginTime)
 	fmt.Println("GetTxFromPoolTime is: ", getTxFromPoolTime)
 
-	endBlockTime := metricValues.EndBlockTime - sequencerTimeSub
-	l2BlockExecTime := metricValues.L2BlockExecTime - sequencerTimeSub
-	l2BlockStoreTime := metricValues.L2BlockStoreTime - sequencerTimeSub
-	fmt.Println("EndBlockTime is: ", endBlockTime)
-	fmt.Println("L2BlockExecTime is: ", l2BlockExecTime)
-	fmt.Println("L2BlockStoreTime is: ", l2BlockStoreTime)
+	syncWaitL2BlockFinishedTime := metricValues.SyncWaitL2BlockFinishedTime - sequencerTimeSub
+	fmt.Println("SyncWaitL2BlockFinishedTime is: ", syncWaitL2BlockFinishedTime)
+
+	syncWaitL2BlockStoreTime := metricValues.SyncWaitL2BlockStoreTime - sequencerTimeSub
+	fmt.Println("SyncWaitL2BlockStoreTime is: ", syncWaitL2BlockStoreTime)
+
+	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - executorTimeSub
+	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
+
+	actualExecTxsTime := metricValues.ExecutorTotalProcessingTime - metricValues.AsyncExecL2BlockTime - executorTimeSub
+	fmt.Println("ActualExecTxsTime is: ", actualExecTxsTime)
 
 	actualTotalTime := metricValues.SequencerTotalProcessingTime - sequencerTimeSub
 	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - executorTimeSub
@@ -124,13 +121,9 @@ func getTransactionsBreakdownForUniswap(numberOfOperations uint64) (*string, uin
 
 type Values struct {
 	SequencerTotalProcessingTime float64
-	BeginBlockTime               float64
-	FinalizeL2BlockAtBeginTime   float64
-	CloseWIPL2BlockAtBeginTime   float64
-	OpenNewWIPL2BlockAtBeginTime float64
-	EndBlockTime                 float64
-	L2BlockExecTime              float64
-	L2BlockStoreTime             float64
+	AsyncExecL2BlockTime         float64
+	SyncWaitL2BlockFinishedTime  float64
+	SyncWaitL2BlockStoreTime     float64
 	GetTxFromPoolTime            float64
 	ExecutorTotalProcessingTime  float64
 	WorkerTotalProcessingTime    float64
@@ -153,29 +146,17 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	sequencerTotalProcessingTimeHisto := mf[metrics.ProcessingTimeName].Metric[0].Histogram
 	sequencerTotalProcessingTime := sequencerTotalProcessingTimeHisto.GetSampleSum()
 
-	beginBlockTimeHisto := mf[metrics.BeginBlockTimeName].Metric[0].Histogram
-	beginBlockTime := beginBlockTimeHisto.GetSampleSum()
+	asyncExecL2BlockTimeNameHisto := mf[metrics.AsyncExecL2BlockTimeName].Metric[0].Histogram
+	asyncExecL2BlockTime := asyncExecL2BlockTimeNameHisto.GetSampleSum()
 
-	endBlockTimeHisto := mf[metrics.EndBlockTimeName].Metric[0].Histogram
-	endBlockTime := endBlockTimeHisto.GetSampleSum()
-
-	l2BlockExecTimeHisto := mf[metrics.L2BlockExecTimeName].Metric[0].Histogram
-	l2BlockExecTime := l2BlockExecTimeHisto.GetSampleSum()
-
-	l2BlockStoreTimeHisto := mf[metrics.L2BlockStoreTimeName].Metric[0].Histogram
-	l2BlockStoreTime := l2BlockStoreTimeHisto.GetSampleSum()
+	syncWaitL2BlockStoreTimeHisto := mf[metrics.SyncWaitL2BlockStoreTimeName].Metric[0].Histogram
+	syncWaitL2BlockStoreTime := syncWaitL2BlockStoreTimeHisto.GetSampleSum()
 
 	getTxFromPoolTimeHisto := mf[metrics.GetTxFromPoolTimeName].Metric[0].Histogram
 	getTxFromPoolTime := getTxFromPoolTimeHisto.GetSampleSum()
 
-	finalizeL2BlockAtBeginTimeNameHisto := mf[metrics.FinalizeL2BlockAtBeginTimeName].Metric[0].Histogram
-	finalizeL2BlockAtBeginTime := finalizeL2BlockAtBeginTimeNameHisto.GetSampleSum()
-
-	closeWIPL2BlockAtBeginTimeNameHisto := mf[metrics.CloseWIPL2BlockAtBeginTimeName].Metric[0].Histogram
-	closeWIPL2BlockAtBeginTime := closeWIPL2BlockAtBeginTimeNameHisto.GetSampleSum()
-
-	openNewWIPL2BlockAtBeginTimeNameHisto := mf[metrics.OpenNewWIPL2BlockAtBeginTimeName].Metric[0].Histogram
-	openNewWIPL2BlockAtBeginTime := openNewWIPL2BlockAtBeginTimeNameHisto.GetSampleSum()
+	SyncWaitL2BlockFinishedTimeNameHisto := mf[metrics.SyncWaitL2BlockFinishedTimeName].Metric[0].Histogram
+	syncWaitL2BlockFinishedTime := SyncWaitL2BlockFinishedTimeNameHisto.GetSampleSum()
 
 	workerTotalProcessingTimeHisto := mf[metrics.WorkerProcessingTimeName].Metric[0].Histogram
 	workerTotalProcessingTime := workerTotalProcessingTimeHisto.GetSampleSum()
@@ -185,14 +166,10 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 
 	return Values{
 		SequencerTotalProcessingTime: sequencerTotalProcessingTime,
-		BeginBlockTime:               beginBlockTime,
-		FinalizeL2BlockAtBeginTime:   finalizeL2BlockAtBeginTime,
-		CloseWIPL2BlockAtBeginTime:   closeWIPL2BlockAtBeginTime,
-		OpenNewWIPL2BlockAtBeginTime: openNewWIPL2BlockAtBeginTime,
+		AsyncExecL2BlockTime:         asyncExecL2BlockTime,
 		GetTxFromPoolTime:            getTxFromPoolTime,
-		EndBlockTime:                 endBlockTime,
-		L2BlockExecTime:              l2BlockExecTime,
-		L2BlockStoreTime:             l2BlockStoreTime,
+		SyncWaitL2BlockFinishedTime:  syncWaitL2BlockFinishedTime,
+		SyncWaitL2BlockStoreTime:     syncWaitL2BlockStoreTime,
 		ExecutorTotalProcessingTime:  executorTotalProcessingTime,
 		WorkerTotalProcessingTime:    workerTotalProcessingTime,
 	}, nil

@@ -268,7 +268,6 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 		if f.wipL2Block.timestamp+uint64(f.cfg.L2BlockMaxDeltaTimestamp.Seconds()) <= uint64(time.Now().Unix()) {
 			f.finalizeWIPL2Block(ctx)
 		}
-		metrics.FinalizeL2BlockAtBeginTime(time.Since(start))
 
 		t1 := now()
 		tx, err := f.workerIntf.GetBestFittingTx(f.wipBatch.imRemainingResources)
@@ -281,7 +280,6 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 		}
 
 		metrics.ProcessingTime(time.Since(start))
-		metrics.BeginBlockTime(time.Since(start))
 		metrics.WorkerProcessingTime(time.Since(start))
 		if tx != nil {
 			showNotFoundTxLog = true
@@ -330,7 +328,6 @@ func (f *finalizer) finalizeBatches(ctx context.Context) {
 			f.finalizeWIPBatch(ctx, closeReason)
 		}
 		metrics.ProcessingTime(time.Since(t2))
-		metrics.EndBlockTime(time.Since(t2))
 
 		if err := ctx.Err(); err != nil {
 			log.Errorf("stopping finalizer because of context, error: %v", err)

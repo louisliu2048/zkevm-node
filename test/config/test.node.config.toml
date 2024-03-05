@@ -116,7 +116,7 @@ StateConsistencyCheckInterval = "5s"
 		ResourceExhaustedMarginPct = 10
 		HaltOnBatchNumber = 0
 		SequentialBatchSanityCheck = false
-		SequentialProcessL2Block = true
+		SequentialProcessL2Block = false
 	[Sequencer.StreamServer]
 		Port = 6900
 		Filename = "/datastreamer/datastream.bin"

@@ -186,14 +186,14 @@ func (f *finalizer) closeAndOpenNewWIPBatch(ctx context.Context, closeReason sta
 	f.pendingL2BlocksToProcessWG.Wait()
 	elapsed := time.Since(startWait)
 	stateMetrics.ExecutorProcessingTime(string(stateMetrics.SequencerCallerLabel), elapsed)
-	metrics.L2BlockExecTime(elapsed)
+	metrics.SyncWaitL2BlockFinishedTime(elapsed)
 
 	log.Debugf("waiting for pending L2 blocks to be processed took: %v", elapsed)
 
 	// Wait until all L2 blocks are store
 	startWait = time.Now()
 	f.pendingL2BlocksToStoreWG.Wait()
-	metrics.L2BlockStoreTime(time.Since(startWait))
+	metrics.SyncWaitL2BlockStoreTime(time.Since(startWait))
 	log.Debugf("waiting for pending L2 blocks to be stored took: %v", time.Since(startWait))
 
 	f.wipBatch.closingReason = closeReason

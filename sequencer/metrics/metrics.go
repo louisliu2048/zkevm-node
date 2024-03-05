@@ -23,15 +23,11 @@ const (
 	// SequenceRewardInPolName is the name of the metric that shows the reward in Pol of a sequence.
 	SequenceRewardInPolName = Prefix + "sequence_reward_in_pol"
 	// ProcessingTimeName is the name of the metric that shows the processing time.
-	ProcessingTimeName               = Prefix + "processing_time"
-	BeginBlockTimeName               = Prefix + "begin_block_time"
-	EndBlockTimeName                 = Prefix + "end_block_time"
-	L2BlockExecTimeName              = Prefix + "l2_block_exec_time"
-	L2BlockStoreTimeName             = Prefix + "l2_block_store_time"
-	GetTxFromPoolTimeName            = Prefix + "get_tx_from_pool"
-	FinalizeL2BlockAtBeginTimeName   = Prefix + "finalize_l2_block_at_begin_time"
-	CloseWIPL2BlockAtBeginTimeName   = Prefix + "close_wip_l2Block_time"
-	OpenNewWIPL2BlockAtBeginTimeName = Prefix + "open_new_wip_l2Block_time"
+	ProcessingTimeName              = Prefix + "processing_time"
+	SyncWaitL2BlockFinishedTimeName = Prefix + "sync_wait_l2_block_finished_time"
+	SyncWaitL2BlockStoreTimeName    = Prefix + "sync_wait_l2_block_store_time"
+	GetTxFromPoolTimeName           = Prefix + "get_tx_from_pool"
+	AsyncExecL2BlockTimeName        = Prefix + "async_exec_l2_block_time"
 
 	// WorkerPrefix is the prefix for the metrics of the worker.
 	WorkerPrefix = Prefix + "worker_"
@@ -105,36 +101,20 @@ func Register() {
 			Help: "[SEQUENCER] processing time",
 		},
 		{
-			Name: BeginBlockTimeName,
-			Help: "[SEQUENCER] begin block time",
+			Name: SyncWaitL2BlockFinishedTimeName,
+			Help: "[SEQUENCER] sync wait l2 block finished time",
 		},
 		{
-			Name: EndBlockTimeName,
-			Help: "[SEQUENCER] end block time",
-		},
-		{
-			Name: L2BlockExecTimeName,
-			Help: "[SEQUENCER] l2 block exec time",
-		},
-		{
-			Name: L2BlockStoreTimeName,
-			Help: "[SEQUENCER] l2 block store time",
+			Name: SyncWaitL2BlockStoreTimeName,
+			Help: "[SEQUENCER] sync wait l2 block store time",
 		},
 		{
 			Name: GetTxFromPoolTimeName,
 			Help: "[SEQUENCER] get tx from pool time",
 		},
 		{
-			Name: FinalizeL2BlockAtBeginTimeName,
-			Help: "[SEQUENCER] finalize l2 block at begin time",
-		},
-		{
-			Name: CloseWIPL2BlockAtBeginTimeName,
-			Help: "[SEQUENCER] close wip l2 block at begin time",
-		},
-		{
-			Name: OpenNewWIPL2BlockAtBeginTimeName,
-			Help: "[SEQUENCER] open new wip l2 block at begin time",
+			Name: AsyncExecL2BlockTimeName,
+			Help: "[SEQUENCER] async exec l2 block time",
 		},
 		{
 			Name: WorkerProcessingTimeName,
@@ -187,24 +167,14 @@ func ProcessingTime(lastProcessTime time.Duration) {
 	metrics.HistogramObserve(ProcessingTimeName, execTimeInSeconds)
 }
 
-func BeginBlockTime(lastProcessTime time.Duration) {
+func SyncWaitL2BlockFinishedTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(BeginBlockTimeName, execTimeInSeconds)
+	metrics.HistogramObserve(SyncWaitL2BlockFinishedTimeName, execTimeInSeconds)
 }
 
-func EndBlockTime(lastProcessTime time.Duration) {
+func SyncWaitL2BlockStoreTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(EndBlockTimeName, execTimeInSeconds)
-}
-
-func L2BlockExecTime(lastProcessTime time.Duration) {
-	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(L2BlockExecTimeName, execTimeInSeconds)
-}
-
-func L2BlockStoreTime(lastProcessTime time.Duration) {
-	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(L2BlockStoreTimeName, execTimeInSeconds)
+	metrics.HistogramObserve(SyncWaitL2BlockStoreTimeName, execTimeInSeconds)
 }
 
 func GetTxFromPoolTime(lastProcessTime time.Duration) {
@@ -212,23 +182,13 @@ func GetTxFromPoolTime(lastProcessTime time.Duration) {
 	metrics.HistogramObserve(GetTxFromPoolTimeName, execTimeInSeconds)
 }
 
-func FinalizeL2BlockAtBeginTime(lastProcessTime time.Duration) {
-	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(FinalizeL2BlockAtBeginTimeName, execTimeInSeconds)
-}
-
-func CloseWIPL2BlockAtBeginTime(lastProcessTime time.Duration) {
-	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(CloseWIPL2BlockAtBeginTimeName, execTimeInSeconds)
-}
-
-func OpenNewWIPL2BlockAtBeginTime(lastProcessTime time.Duration) {
-	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
-	metrics.HistogramObserve(OpenNewWIPL2BlockAtBeginTimeName, execTimeInSeconds)
-}
-
 // WorkerProcessingTime observes the last processing time on the histogram.
 func WorkerProcessingTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
 	metrics.HistogramObserve(WorkerProcessingTimeName, execTimeInSeconds)
+}
+
+func AsyncExecL2BlockTime(lastProcessTime time.Duration) {
+	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
+	metrics.HistogramObserve(AsyncExecL2BlockTimeName, execTimeInSeconds)
 }
