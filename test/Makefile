@@ -583,6 +583,13 @@ run: ## Runs a full node
 	$(RUNAGGREGATOR)
 	$(RUNJSONRPC)
 
+.PHONY: local-network
+local-network: ## run db and l1 mock network to start a local network environment
+	$(RUNSTATEDB)
+	$(RUNPOOLDB)
+	$(RUNEVENTDB)
+	$(RUNL1NETWORK)
+
 .PHONY: run-v1tov2
 run-v1tov2: ## Runs a full node using v1tov2 network
 	$(RUNSTATEDB)
