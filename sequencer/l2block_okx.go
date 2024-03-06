@@ -70,7 +70,7 @@ func (f *finalizer) processL2Block_okx(ctx context.Context, l2Block *L2Block) er
 		if txResponse.TxHash != l2Block.transactions[i].Hash {
 			return fmt.Errorf("blockResponse.TransactionsResponses[%d] hash %s doesn't match l2Block.transactions[%d] hash %s", i, txResponse.TxHash.String(), i, l2Block.transactions[i].Hash)
 		}
-		_, err = f.handleProcessTransactionResponse_okx(ctx, l2Block.transactions[i], txResponse)
+		_, err = f.handleProcessTransactionResponse_okx(ctx, l2Block.transactions[i], txResponse, batchResponse.ReadWriteAddresses)
 		if err != nil {
 			log.Errorf("failed to process tx %s, error: %v", txResponse.TxHash, err)
 		}

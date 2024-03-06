@@ -137,12 +137,13 @@ func (f *finalizer) prepareTransaction(tx *TxTracker, firstTxProcess bool) error
 }
 
 // handleProcessTransactionResponse handles the response of transaction processing.
-func (f *finalizer) handleProcessTransactionResponse_okx(ctx context.Context, tx *TxTracker, result *state.ProcessTransactionResponse) (errWg *sync.WaitGroup, err error) {
+func (f *finalizer) handleProcessTransactionResponse_okx(ctx context.Context, tx *TxTracker, result *state.ProcessTransactionResponse,
+	touchedAddresses map[common.Address]*state.InfoReadWrite) (errWg *sync.WaitGroup, err error) {
 	// Handle Transaction Error
 	errorCode := executor.RomErrorCode(result.RomError)
 	if !state.IsStateRootChanged(errorCode) {
 		// If intrinsic error or OOC error, we skip adding the transaction to the batch
-		errWg = f.handleProcessTransactionError_okx(ctx, result, tx)
+		errWg = f.handleProcessTransactionError_okx(ctx, result, tx, touchedAddresses)
 		return errWg, result.RomError
 	}
 
@@ -199,14 +200,16 @@ func (f *finalizer) handleProcessTransactionResponse_okx(ctx context.Context, tx
 		tx.EGPLog.ValueFinal, tx.EGPLog.ValueFirst, tx.EGPLog.ValueSecond, tx.EGPLog.Percentage, tx.EGPLog.FinalDeviation, tx.EGPLog.MaxDeviation, tx.EGPLog.GasUsedFirst, tx.EGPLog.GasUsedSecond,
 		tx.EGPLog.GasPrice, tx.EGPLog.L1GasPrice, tx.EGPLog.L2GasPrice, tx.EGPLog.Reprocess, tx.EGPLog.GasPriceOC, tx.EGPLog.BalanceOC, egpEnabled, len(tx.RawTx), tx.HashStr, tx.EGPLog.Error)
 
-	f.updateWorkerAfterSuccessfulProcessing_okx(ctx, tx.Hash, tx.From, false, result)
+	f.updateWorkerAfterSuccessfulProcessing_okx(ctx, tx.Hash, tx.From, false, touchedAddresses)
 
 	return nil, nil
 }
 
 // handleProcessTransactionError handles the error of a transaction
-func (f *finalizer) handleProcessTransactionError_okx(ctx context.Context, result *state.ProcessTransactionResponse, tx *TxTracker) *sync.WaitGroup {
+func (f *finalizer) handleProcessTransactionError_okx(ctx context.Context, result *state.ProcessTransactionResponse, tx *TxTracker,
+	touchedAddresses map[common.Address]*state.InfoReadWrite) *sync.WaitGroup {
 	errorCode := executor.RomErrorCode(result.RomError)
+	addressInfo := touchedAddresses[tx.From]
 	log.Infof("rom error in tx %s, errorCode: %d", tx.HashStr, errorCode)
 	wg := new(sync.WaitGroup)
 	failedReason := executor.RomErr(errorCode).Error()
@@ -227,8 +230,17 @@ func (f *finalizer) handleProcessTransactionError_okx(ctx context.Context, resul
 			}
 		}()
 	} else if executor.IsInvalidNonceError(errorCode) || executor.IsInvalidBalanceError(errorCode) {
+		var (
+			nonce   *uint64
+			balance *big.Int
+		)
+		if addressInfo != nil {
+			nonce = addressInfo.Nonce
+			balance = addressInfo.Balance
+		}
 		start := time.Now()
-		txsToDelete := f.workerIntf.MoveTxToNotReady(tx.Hash, tx.From, nil, nil)
+		log.Errorf("intrinsic error, moving tx %s to not ready: nonce: %d, balance: %d. gasPrice: %d, error: %v", tx.Hash, nonce, balance, tx.GasPrice, result.RomError)
+		txsToDelete := f.workerIntf.MoveTxToNotReady(tx.Hash, tx.From, nonce, balance)
 		for _, txToDelete := range txsToDelete {
 			wg.Add(1)
 			txToDelete := txToDelete
@@ -263,7 +275,8 @@ func (f *finalizer) handleProcessTransactionError_okx(ctx context.Context, resul
 	return wg
 }
 
-func (f *finalizer) updateWorkerAfterSuccessfulProcessing_okx(ctx context.Context, txHash common.Hash, txFrom common.Address, isForced bool, result *state.ProcessTransactionResponse) {
+func (f *finalizer) updateWorkerAfterSuccessfulProcessing_okx(ctx context.Context, txHash common.Hash, txFrom common.Address,
+	isForced bool, touchedAddresses map[common.Address]*state.InfoReadWrite) {
 	// Delete the transaction from the worker
 	if isForced {
 		f.workerIntf.DeleteForcedTx(txHash, txFrom)
@@ -273,4 +286,16 @@ func (f *finalizer) updateWorkerAfterSuccessfulProcessing_okx(ctx context.Contex
 		f.workerIntf.DeleteTx(txHash, txFrom)
 		log.Debugf("tx %s deleted from address %s", txHash.String(), txFrom.Hex())
 	}
+
+	start := time.Now()
+	txsToDelete := f.workerIntf.UpdateAfterSingleSuccessfulTxExecution(txFrom, touchedAddresses)
+	for _, txToDelete := range txsToDelete {
+		err := f.poolIntf.UpdateTxStatus(ctx, txToDelete.Hash, pool.TxStatusFailed, false, txToDelete.FailedReason)
+		if err != nil {
+			log.Errorf("failed to update status to failed in the pool for tx %s, error: %v", txToDelete.Hash.String(), err)
+			continue
+		}
+		metrics.TxProcessed(metrics.TxProcessedLabelFailed, 1)
+	}
+	metrics.WorkerProcessingTime(time.Since(start))
 }
