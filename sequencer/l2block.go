@@ -275,7 +275,7 @@ func (f *finalizer) executeL2Block(ctx context.Context, initialStateRoot common.
 		Transactions:              batchL2Data,
 		SkipFirstChangeL2Block_V2: false,
 		SkipWriteBlockInfoRoot_V2: false,
-		Caller:                    stateMetrics.DiscardCallerLabel,
+		Caller:                    stateMetrics.SequencerCallerLabel,
 		ForkID:                    f.stateIntf.GetForkIDByBatchNumber(f.wipBatch.batchNumber),
 		SkipVerifyL1InfoRoot_V2:   true,
 		L1InfoTreeData_V2:         map[uint32]state.L1DataV2{},

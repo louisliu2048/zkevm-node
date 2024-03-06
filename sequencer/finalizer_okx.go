@@ -32,6 +32,7 @@ func (f *finalizer) finalizeBatches_okx(ctx context.Context) {
 		metrics.ProcessingTime(time.Since(start))
 		metrics.WorkerProcessingTime(time.Since(start))
 		if len(txs) > 0 {
+			t1 := time.Now()
 			for _, tx := range txs {
 				if err := f.prepareTransaction(tx, true); err == nil {
 					f.wipL2Block.addTx(tx)
@@ -42,6 +43,8 @@ func (f *finalizer) finalizeBatches_okx(ctx context.Context) {
 			}
 
 			f.finalizeWIPL2Block_okx(ctx)
+
+			metrics.ProcessingTime(time.Since(t1))
 		} else {
 			if f.cfg.NewTxsWaitInterval.Duration > 0 {
 				time.Sleep(f.cfg.NewTxsWaitInterval.Duration)
