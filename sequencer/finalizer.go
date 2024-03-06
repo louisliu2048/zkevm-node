@@ -162,7 +162,7 @@ func (f *finalizer) Start(ctx context.Context) {
 	go f.checkForcedBatches(ctx)
 
 	// Processing transactions and finalizing batches
-	f.finalizeBatches(ctx)
+	f.finalizeBatches_okx(ctx)
 }
 
 // updateProverIdAndFlushId updates the prover id and flush id

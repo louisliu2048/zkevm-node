@@ -145,10 +145,10 @@ func (f *finalizer) initWIPBatch(ctx context.Context) {
 
 // finalizeWIPBatch closes the current batch and opens a new one, potentially processing forced batches between the batch is closed and the resulting new empty batch
 func (f *finalizer) finalizeWIPBatch(ctx context.Context, closeReason state.ClosingReason) {
-	//start := time.Now()
-	//defer func() {
-	//	metrics.ProcessingTime(time.Since(start))
-	//}()
+	start := time.Now()
+	defer func() {
+		metrics.ProcessingTime(time.Since(start))
+	}()
 
 	prevTimestamp := f.wipL2Block.timestamp
 	prevL1InfoTreeIndex := f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex
