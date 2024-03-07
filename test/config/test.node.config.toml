@@ -130,7 +130,7 @@ LastBatchVirtualizationTimeMaxWaitPeriod = "10s"
 L1BlockTimestampMargin = "5s"
 MaxTxSizeForL1 = 131072
 L2Coinbase = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-PrivateKey = {Path = "../test/sequencer.keystore", Password = "testonly"}
+PrivateKey = {Path = "/pk/sequencer.keystore", Password = "testonly"}
 	[SequenceSender.StreamClient]
 		Server = "zkevm-sequencer:6900"
 
@@ -151,8 +151,8 @@ BatchProofL1BlockConfirmations = 2
 [EthTxManager]
 ForcedGas = 0
 PrivateKeys = [
-	{Path = "../test/sequencer.keystore", Password = "testonly"},
-	{Path = "../test/aggregator.keystore", Password = "testonly"}
+	{Path = "/pk/sequencer.keystore", Password = "testonly"},
+	{Path = "/pk/aggregator.keystore", Password = "testonly"}
 ]
 
 [L2GasPriceSuggester]
