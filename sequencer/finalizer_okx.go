@@ -64,10 +64,12 @@ func (f *finalizer) finalizeBatches_okx(ctx context.Context) {
 			}
 		}
 
+		t2 := time.Now()
 		// Check if we must finalize the batch due to a closing reason (resources exhausted, max txs, timestamp resolution, forced batches deadline)
 		if finalize, closeReason := f.checkIfFinalizeBatch(); finalize {
 			f.finalizeWIPBatch(ctx, closeReason)
 		}
+		metrics.ProcessingTime(time.Since(t2))
 
 		if err := ctx.Err(); err != nil {
 			log.Errorf("stopping finalizer because of context, error: %v", err)
