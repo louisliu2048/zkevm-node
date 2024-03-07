@@ -12,10 +12,10 @@ sleep 5
 
 ##run zkevm-sync
 #echo 'start zkevm-sync'
-#nohup ./zkevm-node run --network custom --custom-network-file ./config/test.genesis.config.json --cfg ./config/test.node.config.toml --components "synchronizer" > xgon-sync.log 2>&1 &
+#nohup ./zkevm-node run --network custom --custom-network-file ./config/test.genesis.config.json --cfg ./config/test.node.config.toml --components "synchronizer" > zkevm-sync.log 2>&1 &
 #
 #sleep 2
 
 #run zkevm-node
 echo 'start zkevm-node'
-nohup ./zkevm-node run --network custom --custom-network-file ./config/test.genesis.config.json --cfg ./config/test.node.config.toml --components "synchronizer,eth-tx-manager,sequencer,sequence-sender,l2gaspricer,aggregator,rpc" > xgon-node.log 2>&1 &
+nohup ./zkevm-node run --network custom --custom-network-file ./config/test.genesis.config.json --cfg ./config/test.node.config.toml --components "synchronizer,eth-tx-manager,sequencer,sequence-sender,l2gaspricer,aggregator,rpc" > zkevm-node.log 2>&1 &

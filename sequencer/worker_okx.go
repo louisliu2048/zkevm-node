@@ -15,7 +15,9 @@ func (w *Worker) GetBestFittingTxs(resources state.BatchResources, number int) (
 	}
 
 	txs := make([]*TxTracker, 0, number)
-	for i := 0; i < w.txSortedList.len(); i++ {
+	targetLen := min(number*2, w.txSortedList.len())
+	// we do not want to go through all list tx, and we need try our best to get the txCandidate
+	for i := 0; i < targetLen; i++ {
 		if len(txs) >= number {
 			break
 		}

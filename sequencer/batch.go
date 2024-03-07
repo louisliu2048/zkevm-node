@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/event"
@@ -525,19 +526,20 @@ func getUsedBatchResources(constraints state.BatchConstraintsCfg, remainingResou
 
 // getMaxRemainingResources returns the max resources that can be used in a batch
 func getMaxRemainingResources(constraints state.BatchConstraintsCfg) state.BatchResources {
+	factor := 0.9
 	return state.BatchResources{
 		ZKCounters: state.ZKCounters{
-			GasUsed:          constraints.MaxCumulativeGasUsed,
-			KeccakHashes:     constraints.MaxKeccakHashes,
-			PoseidonHashes:   constraints.MaxPoseidonHashes,
-			PoseidonPaddings: constraints.MaxPoseidonPaddings,
-			MemAligns:        constraints.MaxMemAligns,
-			Arithmetics:      constraints.MaxArithmetics,
-			Binaries:         constraints.MaxBinaries,
-			Steps:            constraints.MaxSteps,
-			Sha256Hashes_V2:  constraints.MaxSHA256Hashes,
+			GasUsed:          uint64(math.Round(float64(constraints.MaxCumulativeGasUsed) * factor)),
+			KeccakHashes:     uint32(math.Round(float64(constraints.MaxKeccakHashes) * factor)),
+			PoseidonHashes:   uint32(math.Round(float64(constraints.MaxPoseidonHashes) * factor)),
+			PoseidonPaddings: uint32(math.Round(float64(constraints.MaxPoseidonPaddings) * factor)),
+			MemAligns:        uint32(math.Round(float64(constraints.MaxMemAligns) * factor)),
+			Arithmetics:      uint32(math.Round(float64(constraints.MaxArithmetics) * factor)),
+			Binaries:         uint32(math.Round(float64(constraints.MaxBinaries) * factor)),
+			Steps:            uint32(math.Round(float64(constraints.MaxSteps) * factor)),
+			Sha256Hashes_V2:  uint32(math.Round(float64(constraints.MaxSHA256Hashes) * factor)),
 		},
-		Bytes: constraints.MaxBatchBytesSize,
+		Bytes: uint64(math.Round(float64(constraints.MaxBatchBytesSize) * factor)),
 	}
 }
 

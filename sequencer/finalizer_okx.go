@@ -20,8 +20,14 @@ func (f *finalizer) finalizeBatches_okx(ctx context.Context) {
 	log.Debug("finalizer init loop")
 	for {
 		start := now()
-		txs, err := f.workerIntf.GetBestFittingTxs(f.wipBatch.imRemainingResources, 10)
-		metrics.GetTxFromPoolTime(time.Since(start))
+		// We have reached the L2 block time, we need to close the current L2 block and open a new one
+		if f.wipL2Block.timestamp+uint64(f.cfg.L2BlockMaxDeltaTimestamp.Seconds()) <= uint64(time.Now().Unix()) {
+			f.finalizeWIPL2Block_okx(ctx)
+		}
+
+		t1 := now()
+		txs, err := f.workerIntf.GetBestFittingTxs(f.wipBatch.imRemainingResources, 50)
+		metrics.GetTxFromPoolTime(time.Since(t1))
 
 		// If we have txs pending to process but none of them fits into the wip batch, we close the wip batch and open a new one
 		if err == ErrNoFittingTransaction {
