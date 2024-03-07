@@ -292,9 +292,9 @@ func (f *finalizer) executeL2Block(ctx context.Context, initialStateRoot common.
 		batchResponse *state.ProcessBatchResponse
 	)
 
-	//t1 := time.Now()
+	t1 := time.Now()
 	batchResponse, err = f.stateIntf.ProcessBatchV2(ctx, batchRequest, true)
-	//metrics.AsyncExecL2BlockTime(time.Since(t1))
+	metrics.AsyncExecL2BlockTime(time.Since(t1))
 
 	if err != nil {
 		executeL2BLockError(err)
@@ -588,7 +588,9 @@ func (f *finalizer) executeNewWIPL2Block(ctx context.Context) (*state.ProcessBat
 		MinTimestamp:   uint64(f.wipL2Block.l1InfoTreeExitRoot.GlobalExitRoot.Timestamp.Unix()),
 	}
 
+	t1 := time.Now()
 	batchResponse, err := f.stateIntf.ProcessBatchV2(ctx, batchRequest, false)
+	metrics.ExecNewWIPL2BlockTime(time.Since(t1))
 
 	if err != nil {
 		return nil, err

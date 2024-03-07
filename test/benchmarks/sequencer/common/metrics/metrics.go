@@ -55,6 +55,9 @@ func CalculateAndPrint(
 	syncWaitL2BlockStoreTime := metricValues.SyncWaitL2BlockStoreTime - sequencerTimeSub
 	fmt.Println("SyncWaitL2BlockStoreTime is: ", syncWaitL2BlockStoreTime)
 
+	execNewWIPL2BlockTime := metricValues.ExecNewWIPL2BlockTime - executorTimeSub
+	fmt.Println("ExecNewWIPL2BlockTime is: ", execNewWIPL2BlockTime)
+
 	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - executorTimeSub
 	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
 
@@ -124,6 +127,7 @@ type Values struct {
 	AsyncExecL2BlockTime         float64
 	SyncWaitL2BlockFinishedTime  float64
 	SyncWaitL2BlockStoreTime     float64
+	ExecNewWIPL2BlockTime        float64
 	GetTxFromPoolTime            float64
 	ExecutorTotalProcessingTime  float64
 	WorkerTotalProcessingTime    float64
@@ -149,6 +153,9 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	asyncExecL2BlockTimeNameHisto := mf[metrics.AsyncExecL2BlockTimeName].Metric[0].Histogram
 	asyncExecL2BlockTime := asyncExecL2BlockTimeNameHisto.GetSampleSum()
 
+	execNewWIPL2BlockTimeNameHisto := mf[metrics.ExecNewWIPL2BlockTimeName].Metric[0].Histogram
+	execNewWIPL2BlockTime := execNewWIPL2BlockTimeNameHisto.GetSampleSum()
+
 	syncWaitL2BlockStoreTimeHisto := mf[metrics.SyncWaitL2BlockStoreTimeName].Metric[0].Histogram
 	syncWaitL2BlockStoreTime := syncWaitL2BlockStoreTimeHisto.GetSampleSum()
 
@@ -170,6 +177,7 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 		GetTxFromPoolTime:            getTxFromPoolTime,
 		SyncWaitL2BlockFinishedTime:  syncWaitL2BlockFinishedTime,
 		SyncWaitL2BlockStoreTime:     syncWaitL2BlockStoreTime,
+		ExecNewWIPL2BlockTime:        execNewWIPL2BlockTime,
 		ExecutorTotalProcessingTime:  executorTotalProcessingTime,
 		WorkerTotalProcessingTime:    workerTotalProcessingTime,
 	}, nil
