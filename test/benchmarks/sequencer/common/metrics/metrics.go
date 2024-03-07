@@ -61,9 +61,6 @@ func CalculateAndPrint(
 	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - executorTimeSub
 	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
 
-	actualExecTxsTime := metricValues.ExecutorTotalProcessingTime - metricValues.AsyncExecL2BlockTime - executorTimeSub
-	fmt.Println("ActualExecTxsTime is: ", actualExecTxsTime)
-
 	actualTotalTime := metricValues.SequencerTotalProcessingTime - sequencerTimeSub
 	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - executorTimeSub
 	totalTime = actualTotalTime
