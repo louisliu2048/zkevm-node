@@ -28,7 +28,9 @@ const (
 	SyncWaitL2BlockStoreTimeName    = Prefix + "sync_wait_l2_block_store_time"
 	GetTxFromPoolTimeName           = Prefix + "get_tx_from_pool"
 	AsyncExecL2BlockTimeName        = Prefix + "async_exec_l2_block_time"
+	ExecL2BlockCntName              = Prefix + "exec_l2_block_cnt"
 	ExecNewWIPL2BlockTimeName       = Prefix + "exec_new_wip_l2_block_time"
+	CreateNewL2BlockCntName         = Prefix + "create_new_l2_block_cnt_time"
 
 	// WorkerPrefix is the prefix for the metrics of the worker.
 	WorkerPrefix = Prefix + "worker_"
@@ -118,8 +120,16 @@ func Register() {
 			Help: "[SEQUENCER] async exec l2 block time",
 		},
 		{
+			Name: ExecL2BlockCntName,
+			Help: "[SEQUENCER] exec l2 block cnt time",
+		},
+		{
 			Name: ExecNewWIPL2BlockTimeName,
 			Help: "[SEQUENCER] exec new wip l2 block time",
+		},
+		{
+			Name: CreateNewL2BlockCntName,
+			Help: "[SEQUENCER] create new l2 block cnt time",
 		},
 		{
 			Name: WorkerProcessingTimeName,
@@ -196,9 +206,11 @@ func WorkerProcessingTime(lastProcessTime time.Duration) {
 func AsyncExecL2BlockTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
 	metrics.HistogramObserve(AsyncExecL2BlockTimeName, execTimeInSeconds)
+	metrics.HistogramObserve(ExecL2BlockCntName, 1)
 }
 
 func ExecNewWIPL2BlockTime(lastProcessTime time.Duration) {
 	execTimeInSeconds := float64(lastProcessTime) / float64(time.Second)
 	metrics.HistogramObserve(ExecNewWIPL2BlockTimeName, execTimeInSeconds)
+	metrics.HistogramObserve(CreateNewL2BlockCntName, 1)
 }

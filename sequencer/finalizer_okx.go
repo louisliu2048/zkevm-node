@@ -26,7 +26,7 @@ func (f *finalizer) finalizeBatches_okx(ctx context.Context) {
 		}
 
 		t1 := now()
-		txs, err := f.workerIntf.GetBestFittingTxs(f.wipBatch.imRemainingResources, 50)
+		txs, err := f.workerIntf.GetBestFittingTxs(f.wipBatch.imRemainingResources, 150)
 		metrics.GetTxFromPoolTime(time.Since(t1))
 
 		// If we have txs pending to process but none of them fits into the wip batch, we close the wip batch and open a new one

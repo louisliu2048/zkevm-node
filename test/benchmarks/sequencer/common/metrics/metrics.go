@@ -57,9 +57,11 @@ func CalculateAndPrint(
 
 	execNewWIPL2BlockTime := metricValues.ExecNewWIPL2BlockTime - executorTimeSub
 	fmt.Println("ExecNewWIPL2BlockTime is: ", execNewWIPL2BlockTime)
+	fmt.Println("CreateNewL2BlockCnt is: ", metricValues.CreateNewL2BlockCnt)
 
 	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - executorTimeSub
 	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
+	fmt.Println("ExecL2BlockCnt is: ", metricValues.ExecL2BlockCnt)
 
 	actualTotalTime := metricValues.SequencerTotalProcessingTime - sequencerTimeSub
 	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - executorTimeSub
@@ -122,9 +124,11 @@ func getTransactionsBreakdownForUniswap(numberOfOperations uint64) (*string, uin
 type Values struct {
 	SequencerTotalProcessingTime float64
 	AsyncExecL2BlockTime         float64
+	ExecL2BlockCnt               float64
 	SyncWaitL2BlockFinishedTime  float64
 	SyncWaitL2BlockStoreTime     float64
 	ExecNewWIPL2BlockTime        float64
+	CreateNewL2BlockCnt          float64
 	GetTxFromPoolTime            float64
 	ExecutorTotalProcessingTime  float64
 	WorkerTotalProcessingTime    float64
@@ -150,8 +154,14 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	asyncExecL2BlockTimeNameHisto := mf[metrics.AsyncExecL2BlockTimeName].Metric[0].Histogram
 	asyncExecL2BlockTime := asyncExecL2BlockTimeNameHisto.GetSampleSum()
 
+	execL2BlockCntNameHisto := mf[metrics.ExecL2BlockCntName].Metric[0].Histogram
+	execL2BlockCnt := execL2BlockCntNameHisto.GetSampleSum()
+
 	execNewWIPL2BlockTimeNameHisto := mf[metrics.ExecNewWIPL2BlockTimeName].Metric[0].Histogram
 	execNewWIPL2BlockTime := execNewWIPL2BlockTimeNameHisto.GetSampleSum()
+
+	createNewL2BlockCntNameHisto := mf[metrics.CreateNewL2BlockCntName].Metric[0].Histogram
+	createNewL2BlockCnt := createNewL2BlockCntNameHisto.GetSampleSum()
 
 	syncWaitL2BlockStoreTimeHisto := mf[metrics.SyncWaitL2BlockStoreTimeName].Metric[0].Histogram
 	syncWaitL2BlockStoreTime := syncWaitL2BlockStoreTimeHisto.GetSampleSum()
@@ -171,10 +181,12 @@ func GetValues(metricsResponse *http.Response) (Values, error) {
 	return Values{
 		SequencerTotalProcessingTime: sequencerTotalProcessingTime,
 		AsyncExecL2BlockTime:         asyncExecL2BlockTime,
+		ExecL2BlockCnt:               execL2BlockCnt,
 		GetTxFromPoolTime:            getTxFromPoolTime,
 		SyncWaitL2BlockFinishedTime:  syncWaitL2BlockFinishedTime,
 		SyncWaitL2BlockStoreTime:     syncWaitL2BlockStoreTime,
 		ExecNewWIPL2BlockTime:        execNewWIPL2BlockTime,
+		CreateNewL2BlockCnt:          createNewL2BlockCnt,
 		ExecutorTotalProcessingTime:  executorTotalProcessingTime,
 		WorkerTotalProcessingTime:    workerTotalProcessingTime,
 	}, nil
