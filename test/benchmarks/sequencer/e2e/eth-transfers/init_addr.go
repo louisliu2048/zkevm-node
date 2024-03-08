@@ -34,6 +34,7 @@ func initSender(client *ethclient.Client, adminAddr *bind.TransactOpts, targetLi
 		if auth.Nonce != nil {
 			auth.Nonce = nil
 		}
+		auth.GasLimit = 2100000
 
 		txs, err := TxSender(client, adminAddr.GasPrice, adminAddr, &auth.From, amount, nil, nil)
 		if err != nil {

@@ -78,13 +78,14 @@ func ParallelSendAndWait(
 	erc20SC *ERC20.ERC20,
 	uniswapDeployments *uniswap.Deployments,
 	txSenderFunc func(l2Client *ethclient.Client, gasPrice *big.Int, auth *bind.TransactOpts, erc20SC *ERC20.ERC20,
-	uniswapDeployments *uniswap.Deployments) ([]*types.Transaction, error),
+		uniswapDeployments *uniswap.Deployments) ([]*types.Transaction, error),
 ) ([]*types.Transaction, error) {
-	//auth.GasLimit = 2100000
 	fmt.Printf("Sending %d txs ...\n", nTxs)
-	//if auth.Nonce != nil {
-	//	auth.Nonce = nil
-	//}
+
+	gasPrice, err := client.SuggestGasPrice(params.Ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	authLen := len(authList)
 	allTxs := make([]*types.Transaction, 0, nTxs)
@@ -94,6 +95,7 @@ func ParallelSendAndWait(
 			continue
 		}
 		auth.GasLimit = 2100000
+		auth.GasPrice = gasPrice
 
 		txs, err := txSenderFunc(client, auth.GasPrice, auth, erc20SC, uniswapDeployments)
 		if err != nil {
@@ -104,7 +106,7 @@ func ParallelSendAndWait(
 	fmt.Println("All txs were sent!")
 
 	fmt.Println("Waiting pending transactions To be added in the pool ...")
-	err := operations.Poll(1*time.Second, params.DefaultDeadline, func() (bool, error) {
+	err = operations.Poll(1*time.Second, params.DefaultDeadline, func() (bool, error) {
 		// using a closure here To capture st and currentBatchNumber
 		pendingTxs, err := getTxsByStatus(params.Ctx, pool.TxStatusPending, 0)
 		if err != nil {
