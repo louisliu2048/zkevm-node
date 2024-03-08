@@ -57,11 +57,11 @@ func CalculateAndPrint(
 
 	execNewWIPL2BlockTime := metricValues.ExecNewWIPL2BlockTime - preTimeSub.ExecNewWIPL2BlockTime
 	fmt.Println("ExecNewWIPL2BlockTime is: ", execNewWIPL2BlockTime)
-	fmt.Println("CreateNewL2BlockCnt is: ", metricValues.CreateNewL2BlockCnt)
+	fmt.Println("CreateNewL2BlockCnt is: ", metricValues.CreateNewL2BlockCnt-preTimeSub.CreateNewL2BlockCnt)
 
 	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - preTimeSub.AsyncExecL2BlockTime
 	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
-	fmt.Println("ExecL2BlockCnt is: ", metricValues.ExecL2BlockCnt)
+	fmt.Println("ExecL2BlockCnt is: ", metricValues.ExecL2BlockCnt-preTimeSub.ExecL2BlockCnt)
 
 	actualTotalTime := metricValues.SequencerTotalProcessingTime - preTimeSub.SequencerTotalProcessingTime
 	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - preTimeSub.ExecutorTotalProcessingTime
