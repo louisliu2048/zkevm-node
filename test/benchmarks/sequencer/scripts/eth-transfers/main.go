@@ -35,7 +35,7 @@ func main() {
 		*numOps,
 		nil,
 		nil,
-		ethtransfers.TxSender,
+		ethtransfers.Sender,
 	)
 	if err != nil {
 		panic(err)

@@ -2,6 +2,7 @@ package eth_transfers
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
@@ -19,27 +20,39 @@ const (
 )
 
 func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
+	var (
+		elapsed time.Duration
+	)
+
 	start := time.Now()
 	//defer func() { require.NoError(b, operations.Teardown()) }()
 	opsman, client, pl, auth := setup.Environment(params.Ctx, b)
 	initialCount, err := pl.CountTransactionsByStatus(params.Ctx, pool.TxStatusSelected)
 	require.NoError(b, err)
+
+	authList := loadSenderAddr(client, "./addr_200")
+	initSender(client, auth, authList, big.NewInt(10))
+	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, params.NumberOfOperations)
+	require.NoError(b, err)
+	elapsed = time.Since(start)
+	fmt.Printf("Total elapsed time: %s\n", elapsed)
+
+	initialCount, err = pl.CountTransactionsByStatus(params.Ctx, pool.TxStatusSelected)
+	require.NoError(b, err)
+
 	timeForSetup := time.Since(start)
 	setup.BootstrapSequencer(b, opsman)
-	allTxs, err := transactions.SendAndWait(
-		auth,
+	allTxs, err := ParallelSendAndWait(
+		authList,
 		client,
 		pl.GetTxsByStatus,
 		params.NumberOfOperations,
 		nil,
 		nil,
-		TxSender,
+		Sender,
 	)
 	require.NoError(b, err)
 
-	var (
-		elapsed time.Duration
-	)
 	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, params.NumberOfOperations)
 	require.NoError(b, err)
 	elapsed = time.Since(start)
