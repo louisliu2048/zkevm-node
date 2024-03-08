@@ -27,12 +27,14 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 	start := time.Now()
 	//defer func() { require.NoError(b, operations.Teardown()) }()
 	opsman, client, pl, auth := setup.Environment(params.Ctx, b)
+	setup.BootstrapSequencer(b, opsman)
+
 	initialCount, err := pl.CountTransactionsByStatus(params.Ctx, pool.TxStatusSelected)
 	require.NoError(b, err)
 
 	authList := loadSenderAddr(client, "./addr_200")
-	initSender(client, auth, authList, big.NewInt(10), pl.GetTxsByStatus)
-	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, params.NumberOfOperations)
+	cnt := initSender(client, auth, authList, big.NewInt(10), pl.GetTxsByStatus)
+	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, uint64(cnt))
 	require.NoError(b, err)
 	elapsed = time.Since(start)
 	fmt.Printf("Total elapsed time: %s\n", elapsed)
@@ -41,7 +43,6 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 	require.NoError(b, err)
 
 	timeForSetup := time.Since(start)
-	setup.BootstrapSequencer(b, opsman)
 	allTxs, err := ParallelSendAndWait(
 		authList,
 		client,

@@ -22,7 +22,7 @@ import (
 )
 
 func initSender(client *ethclient.Client, adminAddr *bind.TransactOpts, targetList []*bind.TransactOpts, amount *big.Int,
-	getTxsByStatus func(ctx context.Context, status pool.TxStatus, limit uint64) ([]pool.Transaction, error)) {
+	getTxsByStatus func(ctx context.Context, status pool.TxStatus, limit uint64) ([]pool.Transaction, error)) int {
 	adminAddr.GasLimit = 2100000
 	fmt.Printf("Init %d accounts ...\n", len(targetList))
 	if adminAddr.Nonce != nil {
@@ -68,7 +68,10 @@ func initSender(client *ethclient.Client, adminAddr *bind.TransactOpts, targetLi
 	})
 	if err != nil {
 		fmt.Printf(" Fail to get tx from pool: %v\n", err)
+		return 0
 	}
+
+	return len(allTxs)
 }
 
 func loadSenderAddr(client *ethclient.Client, filepath string) []*bind.TransactOpts {
