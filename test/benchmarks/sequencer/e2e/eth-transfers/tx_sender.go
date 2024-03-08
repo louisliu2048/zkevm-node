@@ -87,6 +87,9 @@ func ParallelSendAndWait(
 	allTxs := make([]*types.Transaction, 0, nTxs)
 	for i := 0; i < int(nTxs); i++ {
 		auth := authList[i%authLen]
+		if auth == nil {
+			continue
+		}
 		auth.GasLimit = 2100000
 
 		txs, err := txSenderFunc(client, auth.GasPrice, auth, erc20SC, uniswapDeployments)

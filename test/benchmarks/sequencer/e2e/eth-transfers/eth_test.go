@@ -31,7 +31,7 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 	require.NoError(b, err)
 
 	authList := loadSenderAddr(client, "./addr_200")
-	initSender(client, auth, authList, big.NewInt(10))
+	initSender(client, auth, authList, big.NewInt(10), pl.GetTxsByStatus)
 	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, params.NumberOfOperations)
 	require.NoError(b, err)
 	elapsed = time.Since(start)
