@@ -28,7 +28,7 @@ func CalculateAndPrint(
 	client *ethclient.Client,
 	profilingResult string,
 	elapsed time.Duration,
-	sequencerTimeSub, executorTimeSub float64,
+	preTimeSub Values,
 	allTxs []*types.Transaction,
 ) {
 	fmt.Println("##########")
@@ -46,25 +46,25 @@ func CalculateAndPrint(
 		panic(fmt.Sprintf("error getting prometheus metrics: %v\n", err))
 	}
 
-	getTxFromPoolTime := metricValues.GetTxFromPoolTime - sequencerTimeSub
+	getTxFromPoolTime := metricValues.GetTxFromPoolTime - preTimeSub.GetTxFromPoolTime
 	fmt.Println("GetTxFromPoolTime is: ", getTxFromPoolTime)
 
-	syncWaitL2BlockFinishedTime := metricValues.SyncWaitL2BlockFinishedTime - sequencerTimeSub
+	syncWaitL2BlockFinishedTime := metricValues.SyncWaitL2BlockFinishedTime - preTimeSub.SyncWaitL2BlockFinishedTime
 	fmt.Println("SyncWaitL2BlockFinishedTime is: ", syncWaitL2BlockFinishedTime)
 
-	syncWaitL2BlockStoreTime := metricValues.SyncWaitL2BlockStoreTime - sequencerTimeSub
+	syncWaitL2BlockStoreTime := metricValues.SyncWaitL2BlockStoreTime - preTimeSub.SyncWaitL2BlockStoreTime
 	fmt.Println("SyncWaitL2BlockStoreTime is: ", syncWaitL2BlockStoreTime)
 
-	execNewWIPL2BlockTime := metricValues.ExecNewWIPL2BlockTime - executorTimeSub
+	execNewWIPL2BlockTime := metricValues.ExecNewWIPL2BlockTime - preTimeSub.ExecNewWIPL2BlockTime
 	fmt.Println("ExecNewWIPL2BlockTime is: ", execNewWIPL2BlockTime)
 	fmt.Println("CreateNewL2BlockCnt is: ", metricValues.CreateNewL2BlockCnt)
 
-	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - executorTimeSub
+	asyncExecL2BlockTime := metricValues.AsyncExecL2BlockTime - preTimeSub.AsyncExecL2BlockTime
 	fmt.Println("AsyncExecL2BlockTime is: ", asyncExecL2BlockTime)
 	fmt.Println("ExecL2BlockCnt is: ", metricValues.ExecL2BlockCnt)
 
-	actualTotalTime := metricValues.SequencerTotalProcessingTime - sequencerTimeSub
-	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - executorTimeSub
+	actualTotalTime := metricValues.SequencerTotalProcessingTime - preTimeSub.SequencerTotalProcessingTime
+	actualExecutorTime := metricValues.ExecutorTotalProcessingTime - preTimeSub.ExecutorTotalProcessingTime
 	totalTime = actualTotalTime
 	PrintSummary(txsType, params.NumberOfOperations, totalTxs, totalTime, actualExecutorTime, GetTotalGasUsedFromTxs(client, allTxs))
 

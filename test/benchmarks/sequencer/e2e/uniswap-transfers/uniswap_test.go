@@ -54,8 +54,7 @@ func BenchmarkSequencerUniswapTransfersPoolProcess(b *testing.B) {
 		client,
 		profilingResult,
 		elapsed,
-		0,
-		0,
+		metrics.Values{},
 		allTxs,
 	)
 	fmt.Printf("%s\n", profilingResult)

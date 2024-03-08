@@ -66,8 +66,7 @@ func BenchmarkSequencerERC20TransfersPoolProcess(b *testing.B) {
 		client,
 		profilingResult,
 		elapsed,
-		deployMetricsValues.SequencerTotalProcessingTime,
-		deployMetricsValues.ExecutorTotalProcessingTime,
+		deployMetricsValues,
 		allTxs,
 	)
 	timeForFetchAndPrintMetrics := time.Since(startMetrics)

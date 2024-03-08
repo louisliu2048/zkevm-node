@@ -33,7 +33,7 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 	require.NoError(b, err)
 
 	authList := loadSenderAddr(client, "./addr_200")
-	cnt := initSender(client, auth, authList, big.NewInt(10), pl.GetTxsByStatus)
+	cnt := initSender(client, auth, authList, big.NewInt(1000*100000*1000000000), pl.GetTxsByStatus)
 	err = transactions.WaitStatusSelected(pl.CountTransactionsByStatus, initialCount, uint64(cnt))
 	require.NoError(b, err)
 	elapsed = time.Since(start)
@@ -43,6 +43,8 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 	require.NoError(b, err)
 
 	timeForSetup := time.Since(start)
+
+	deployMetricsValues, err := metrics.GetValues(nil)
 	allTxs, err := ParallelSendAndWait(
 		authList,
 		client,
@@ -72,8 +74,7 @@ func BenchmarkSequencerEthTransfersPoolProcess(b *testing.B) {
 		client,
 		profilingResult,
 		elapsed,
-		0,
-		0,
+		deployMetricsValues,
 		allTxs,
 	)
 	fmt.Printf("%s\n", profilingResult)

@@ -34,15 +34,13 @@ func Sender(l2Client *ethclient.Client, gasPrice *big.Int, auth *bind.TransactOp
 // TxSender sends eth transfer to the sequencer
 func TxSender(l2Client *ethclient.Client, gasPrice *big.Int, auth *bind.TransactOpts, to *common.Address, value *big.Int,
 	erc20SC *ERC20.ERC20, uniswapDeployments *uniswap.Deployments) ([]*types.Transaction, error) {
+	fmt.Printf("sending tx num: %d\n", countTxs+1)
+
 	senderNonce, err := l2Client.PendingNonceAt(params.Ctx, auth.From)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("sending tx num: %d, sender is: %s, sender nonce is: %d, receiver is: %s, value is: %v\n",
-		countTxs+1, auth.From.String(), senderNonce, to.String(), value.String())
-
-	fmt.Println("gas price is: ", gasPrice)
 	tx := types.NewTx(&types.LegacyTx{
 		GasPrice: gasPrice,
 		Gas:      uint64(gasLimit),
