@@ -70,7 +70,7 @@ func (f *finalizer) initWIPL2Block(ctx context.Context) {
 		log.Fatalf("failed to get last L2 block number, error: %v", err)
 	}
 
-	f.openNewWIPL2Block(ctx, uint64(lastL2Block.ReceivedAt.Unix()), nil)
+	f.openNewWIPL2Block_okx(ctx, uint64(lastL2Block.ReceivedAt.Unix()), nil)
 }
 
 // addPendingL2BlockToProcess adds a pending L2 block that is closed and ready to be processed by the executor
