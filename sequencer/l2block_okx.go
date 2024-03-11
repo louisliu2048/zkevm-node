@@ -19,7 +19,7 @@ func (f *finalizer) finalizeWIPL2Block_okx(ctx context.Context) {
 
 	f.closeWIPL2Block_okx(ctx)
 
-	f.openNewWIPL2Block(ctx, prevTimestamp, &prevL1InfoTreeIndex)
+	f.openNewWIPL2Block_okx(ctx, prevTimestamp, &prevL1InfoTreeIndex)
 }
 
 // closeWIPL2Block closes the wip L2 block
@@ -38,6 +38,53 @@ func (f *finalizer) closeWIPL2Block_okx(ctx context.Context) {
 	f.wipBatch.imStateRoot = f.wipBatch.finalStateRoot
 
 	f.wipL2Block = nil
+}
+
+// openNewWIPL2Block opens a new wip L2 block
+func (f *finalizer) openNewWIPL2Block_okx(ctx context.Context, prevTimestamp uint64, prevL1InfoTreeIndex *uint32) {
+	newL2Block := &L2Block{}
+
+	// Tracking number
+	f.l2BlockCounter++
+	newL2Block.trackingNum = f.l2BlockCounter
+
+	newL2Block.deltaTimestamp = uint32(uint64(now().Unix()) - prevTimestamp)
+	newL2Block.timestamp = prevTimestamp + uint64(newL2Block.deltaTimestamp)
+
+	newL2Block.transactions = []*TxTracker{}
+
+	f.lastL1InfoTreeMux.Lock()
+	newL2Block.l1InfoTreeExitRoot = f.lastL1InfoTree
+	f.lastL1InfoTreeMux.Unlock()
+
+	// Check if L1InfoTreeIndex has changed, in this case we need to use this index in the changeL2block instead of zero
+	// If it's the first wip L2 block after starting sequencer (prevL1InfoTreeIndex == nil) then we retrieve the last GER and we check if it's
+	// different from the GER of the current L1InfoTreeIndex (if the GER is different this means that the index also is different)
+	if prevL1InfoTreeIndex == nil {
+		lastGER, err := f.stateIntf.GetLatestBatchGlobalExitRoot(ctx, nil)
+		if err == nil {
+			newL2Block.l1InfoTreeExitRootChanged = (newL2Block.l1InfoTreeExitRoot.GlobalExitRoot.GlobalExitRoot != lastGER)
+		} else {
+			// If we got an error when getting the latest GER then we consider that the index has not changed and it will be updated the next time we have a new L1InfoTreeIndex
+			log.Warnf("failed to get the latest CER when initializing the WIP L2 block, assuming L1InfoTreeIndex has not changed, error: %v", err)
+		}
+	} else {
+		newL2Block.l1InfoTreeExitRootChanged = (newL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex != *prevL1InfoTreeIndex)
+	}
+
+	f.wipL2Block = newL2Block
+
+	log.Debugf("creating new WIP L2 block [%d], batch: %d, deltaTimestamp: %d, timestamp: %d, l1InfoTreeIndex: %d, l1InfoTreeIndexChanged: %v",
+		f.wipL2Block.trackingNum, f.wipBatch.batchNumber, f.wipL2Block.deltaTimestamp, f.wipL2Block.timestamp, f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex, f.wipL2Block.l1InfoTreeExitRootChanged)
+
+	// Update imStateRoot
+	oldIMStateRoot := f.wipBatch.imStateRoot
+	f.wipBatch.imStateRoot = f.wipL2Block.imStateRoot
+	f.wipL2Block.bytes = changeL2BlockSize
+
+	log.Infof("created new WIP L2 block [%d], batch: %d, deltaTimestamp: %d, timestamp: %d, l1InfoTreeIndex: %d, l1InfoTreeIndexChanged: %v, oldStateRoot: %s, imStateRoot: %s, used counters: %s, reserved counters: %s",
+		f.wipL2Block.trackingNum, f.wipBatch.batchNumber, f.wipL2Block.deltaTimestamp, f.wipL2Block.timestamp, f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex,
+		f.wipL2Block.l1InfoTreeExitRootChanged, oldIMStateRoot, f.wipL2Block.imStateRoot, f.logZKCounters(f.wipL2Block.usedZKCounters), f.logZKCounters(f.wipL2Block.reservedZKCounters))
 }
 
 // processL2Block process a L2 Block and adds it to the pendingL2BlocksToStore channel

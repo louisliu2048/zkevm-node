@@ -166,7 +166,7 @@ func (f *finalizer) finalizeWIPBatch(ctx context.Context, closeReason state.Clos
 
 	// If we have closed the wipL2Block then we open a new one
 	if f.wipL2Block == nil {
-		f.openNewWIPL2Block(ctx, prevTimestamp, &prevL1InfoTreeIndex)
+		f.openNewWIPL2Block_okx(ctx, prevTimestamp, &prevL1InfoTreeIndex)
 	}
 }
 
